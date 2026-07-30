@@ -52,34 +52,37 @@ module uart_tx #(
             // ----- FSM -----
             case (r_state)
 
+                // Wait for i_tx_start pulse to latch data and begin a frame
                 S_IDLE:
                 begin
                     o_tx      <= 1'b1;
                     o_tx_busy <= 1'b0;
                     if (i_tx_start)
                     begin
-                        r_shift   <= i_tx_data;  // Latch the data byte
+                        r_shift   <= i_tx_data; 
                         r_bit_idx <= 0;
                         o_tx_busy <= 1'b1;
                         r_state   <= S_START;
                     end
                 end
 
+                // Drive the start bit for 1 baud tick
                 S_START:
                 begin
                     if (i_baud_tick)
                     begin
-                        o_tx    <= 1'b0;   // Start bit
+                        o_tx    <= 1'b0; 
                         r_state <= S_DATA;
                     end
                 end
 
+                // Shift out each data bit, LSB first, 1 per baud tick
                 S_DATA:
                 begin
                     if (i_baud_tick)
                     begin
-                        o_tx    <= r_shift[0];    // LSB first
-                        r_shift <= r_shift >> 1; 
+                        o_tx    <= r_shift[0];
+                        r_shift <= r_shift >> 1;
                         if (r_bit_idx == DATA_BITS-1)
                         begin
                             r_state <= S_STOP;
@@ -91,12 +94,13 @@ module uart_tx #(
                     end
                 end
 
+                // Drive the stop bit, signal completion, and return to IDLE
                 S_STOP:
                 begin
                     if (i_baud_tick)
                     begin
-                        o_tx      <= 1'b1;  // Stop bit
-                        o_tx_done <= 1'b1;  
+                        o_tx      <= 1'b1; 
+                        o_tx_done <= 1'b1;
                         r_state   <= S_IDLE;
                     end
                 end
