@@ -140,21 +140,29 @@ module uart_rx #(
                             begin
                                 r_state <= S_STOP;
                             end
+                            else
+                            begin
+                                r_bit_idx <= r_bit_idx + 1;
+                            end
                         end
                         else
                         begin
-                            r_bit_idx <= r_bit_idx + 1;
+                            r_os_count <= r_os_count + 1;
                         end
                     end
 
                     // Check the stop bit at its center, then publish
                     S_STOP:
                     begin
-                        if (r_os_count == 4'd15)
+                        if (r_os_count == 4'd7)
                         begin
                             o_rx_data   <= r_shift;
                             o_rx_valid  <= 1'b1; 
                             o_frame_err <= (r_rx_stable != 1'b1); // Stop must be high
+                        end
+
+                        if (r_os_count == 4'd15)
+                        begin
                             r_os_count  <= 0;
                             r_state     <= S_IDLE;
                         end
