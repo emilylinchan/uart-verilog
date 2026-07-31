@@ -8,8 +8,8 @@
  */
 
  module baud_gen #(
-    parameter integer CLK_FREQ  = 50000000, // Input clock frequency in Hz
-    parameter integer BAUD_RATE = 115200    // Target baud rate
+    parameter integer CLK_FREQ  = 50_000_000, // Input clock frequency in Hz
+    parameter integer BAUD_RATE = 115_200    // Target baud rate
  ) (
     input wire i_clk,
     input wire i_rst_n,        // Active-low synchronous reset
