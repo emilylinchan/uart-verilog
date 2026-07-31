@@ -2,10 +2,14 @@
  * @file    uart_rx.v
  * @brief   UART receiver with 16x oversampling.
  *
- * Samples each bit near its center using the i_baud_tick_16x strobe and
- * uses 3-sample majority voting for noise tolerance.
- *
  * Frame: 1 start bit (0), DATA_BITS data (LSB first), 1 stop bit (1).
+ * Samples each bit near its center using the i_baud_tick_16x strobe and
+ * uses 3-sample majority voting (positions 6, 7, 8) for noise tolerance.
+ *
+ * Clock Domain Crossing (CDC):
+ *   - Synchronizes the asynchronous input i_rx into the i_clk domain using a 
+ *     2-stage flip-flop synchronizer (r_rx_meta -> r_rx_stable) to prevent 
+ *     metastability.
  * 
  * Protocol:
  *   - rx_data   : Received data byte (valid when rx_valid pulses)
@@ -24,6 +28,22 @@ module uart_rx #(
     output reg                 o_rx_valid,      // Data byte ready pulse
     output reg                 o_frame_err      // Bad stop bit pulse
 );
+
+    // ----- Clock Domain Crossing (2-FF Synchronizer) -----
+    reg r_rx_meta, r_rx_stable;
+    always @(posedge i_clk)
+    begin
+        if (!i_rst_n)
+        begin
+            r_rx_meta   <= 1'b1;
+            r_rx_stable <= 1'b1;
+        end
+        else
+        begin
+            r_rx_meta   <= i_rx;
+            r_rx_stable <= i_rx_meta;
+        end
+    end
 
     // ----- State Encoding -----
     localparam S_IDLE  = 2'b00;
@@ -67,7 +87,7 @@ module uart_rx #(
                     // Wait for the falling edge that starts a frame
                     S_IDLE:
                     begin
-                        if (i_rx == 1'b0)
+                        if (r_rx_stable == 1'b0)
                         begin
                             r_state    <= S_START;
                             r_os_count <= 0;
@@ -77,9 +97,9 @@ module uart_rx #(
                     // Confirm start bit is still low at its center (position 7)
                     S_START:
                     begin
-                        if (r_os_count == 4'd7 && i_rx != 1'b0)
+                        if (r_os_count == 4'd7 && r_rx_stable != 1'b0)
                         begin
-                            r_state    <= S_IDLE;          // Glitch occurred, false start
+                            r_state    <= S_IDLE; // Glitch occurred, false start
                             r_os_count <= r_os_count + 1;
                         end
                         else if (r_os_count == 4'd15)
@@ -100,15 +120,15 @@ module uart_rx #(
                         // Accumulate votes around the bit center
                         if (r_os_count == 4'd6)
                         begin
-                            r_vote <= {1'b0, i_rx};
+                            r_vote <= {1'b0, r_rx_stable};
                         end
                         else if (r_os_count == 4'd7)
                         begin
-                            r_vote <= r_vote + i_rx;
+                            r_vote <= r_vote + r_rx_stable;
                         end
                         else if (r_os_count == 4'd8)
                         begin
-                            r_bit_val <= (r_vote + i_rx >= 2'd2); // Majority of 3
+                            r_bit_val <= (r_vote + r_rx_stable >= 2'd2); // Majority of 3
                         end
 
                         // Commit resolved bit at the end of the oversampling period
@@ -134,7 +154,7 @@ module uart_rx #(
                         begin
                             o_rx_data   <= r_shift;
                             o_rx_valid  <= 1'b1; 
-                            o_frame_err <= (i_rx != 1'b1); // Stop must be high
+                            o_frame_err <= (r_rx_stable != 1'b1); // Stop must be high
                             r_os_count  <= 0;
                             r_state     <= S_IDLE;
                         end
