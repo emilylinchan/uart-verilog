@@ -33,12 +33,12 @@ module uart #(
     wire w_baud_tick, w_baud_tick_16x;
 
     baud_gen #(
-        .CLK_FREQ(CLK_FREQ)
+        .CLK_FREQ(CLK_FREQ),
         .BAUD_RATE(BAUD_RATE)
     ) u_baud (
-        .i_clk           (i_clk)
-        .i_rst_n         (i_rst_n)
-        .o_baud_tick     (w_baud_tick)
+        .i_clk           (i_clk),
+        .i_rst_n         (i_rst_n),
+        .o_baud_tick     (w_baud_tick),
         .o_baud_tick_16x (w_baud_tick_16x)
     );
 

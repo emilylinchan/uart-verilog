@@ -41,7 +41,7 @@ module uart_rx #(
         else
         begin
             r_rx_meta   <= i_rx;
-            r_rx_stable <= i_rx_meta;
+            r_rx_stable <= r_rx_meta;
         end
     end
 
