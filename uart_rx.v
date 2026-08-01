@@ -134,7 +134,7 @@ module uart_rx #(
                         // Commit resolved bit at the end of the oversampling period
                         if (r_os_count == 4'd15)
                         begin
-                            r_shift    <= {r_bit_val, r_shift[DATA_BITS-1:1]} // LSB first, shift right
+                            r_shift    <= {r_bit_val, r_shift[DATA_BITS-1:1]}; // LSB first, shift right
                             r_os_count <= 0;
                             if (r_bit_idx == DATA_BITS-1)
                             begin
