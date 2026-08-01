@@ -1,0 +1,18 @@
+# Quartus build artifacts
+db/
+incremental_db/
+output_files/
+simulation/
+greybox_tmp/
+hc_output/
+*.qws
+*.bak
+*.rpt
+*.summary
+*.sof
+*.pof
+*.jdi
+*.pin
+*.smsg
+*.done
+*.qdf
