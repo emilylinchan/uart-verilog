@@ -20,6 +20,7 @@ The design also includes an asynchronous reset (active-low push button) that is 
 | File | Description |
 | --- | --- |
 | [uart_7seg.v](uart_7seg.v) | Top-level entity: instantiates the UART core and reset synchronizer, latches received bytes, and drives the two 7-segment decoders |
+| [binary_to_7segment.v](binary_to_7segment.v) | Decodes a 4-bit binary value (0-F) into 7-segment display segment drive signals |
 | [uart_7seg.qpf](uart_7seg.qpf) | Quartus project file |
 | [uart_7seg.qsf](uart_7seg.qsf) | Quartus settings and pin assignments |
 
